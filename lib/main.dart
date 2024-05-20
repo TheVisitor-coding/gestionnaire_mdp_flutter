@@ -228,7 +228,7 @@ class PasswordsList extends StatefulWidget {
 
 class _PasswordsListState extends State<PasswordsList> {
   static var data = Data();
-  List<Map<String, dynamic>> dataList = data.data['data']!;
+  dynamic dataList = data.data['data'];
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +246,7 @@ class _PasswordsListState extends State<PasswordsList> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: dataList.isNotEmpty
                     ? dataList
-                        .map((item) => CardServices(
+                        .map<Widget>((item) => CardServices(
                               item['service'],
                               item['userInfo']['identifier'],
                               item['userInfo']['password'],
@@ -392,7 +392,6 @@ class AddService extends StatelessWidget {
                   'userInfo': {'identifier': identifier, 'password': password}
                 };
                 data.addData(content);
-                fileActions.writeOnFile(data.data);
 
                 Navigator.push(
                   context,

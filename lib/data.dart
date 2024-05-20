@@ -1,19 +1,33 @@
+import 'dart:io';
+import 'dart:convert';
+import 'file_writing.dart';
+
 class Data {
-  Map<String, List<Map<String, dynamic>>> data = {
-    "data": [
-      {
-        "service": "Netflix",
-        "id_identifiers": 1,
-        "userInfo": {"identifier": "test@free.fr", "password": "Test1998"}
+  var file = File("./data.json");
+  var fileActions = FileActions();
+  dynamic data;
+
+  Data() : data = {"data": []} {
+    if (file.existsSync()) {
+      if (file.readAsStringSync() != "") {
+        data = jsonDecode(file.readAsStringSync());
+      } else {
+        data = {"data": []};
       }
-    ]
-  };
+    } else {
+      data = {"data": []};
+    }
+  }
+
   void addData(Map<String, dynamic> content) {
     data["data"]!.add(content);
+    fileActions.writeOnFile(data);
   }
 
   void removeData(int id) {
-    data['data']!.removeWhere((element) => element['id_identifiers'] == id);
+    var localData = data['data'];
+    localData!.removeWhere((element) => element['id_identifiers'] == id);
+    fileActions.writeOnFile(localData);
   }
 
   int getCurrentId() {
