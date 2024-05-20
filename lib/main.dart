@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'password_manager.dart';
+import 'data.dart';
+import 'file_writing.dart';
 
 void main() {
   runApp(const MainApp());
@@ -315,8 +317,19 @@ class CardServices extends StatelessWidget {
   }
 }
 
+//"service": "Netflix",
+// "id_identifiers": 1,
+// "userInfo": {"identifier": "test@free.fr", "password": "Test1998"}
 class AddService extends StatelessWidget {
+  static var data = Data();
+  static var fileActions = FileActions();
+
   const AddService({super.key});
+
+  static String service = '';
+  static int idIdentifiers = data.getCurrentId();
+  static String identifier = '';
+  static String password = '';
 
   @override
   Widget build(BuildContext context) {
@@ -331,7 +344,7 @@ class AddService extends StatelessWidget {
             SizedBox(
               width: 400,
               child: TextField(
-                onChanged: (value) => print(value),
+                onChanged: (value) => service = value,
                 decoration: const InputDecoration(
                   labelText: 'Nom du Service',
                 ),
@@ -341,7 +354,7 @@ class AddService extends StatelessWidget {
             SizedBox(
               width: 400,
               child: TextField(
-                onChanged: (value) => print(value),
+                onChanged: (value) => identifier = value,
                 decoration: const InputDecoration(
                   labelText: 'Identifiant',
                 ),
@@ -351,7 +364,7 @@ class AddService extends StatelessWidget {
             SizedBox(
               width: 400,
               child: TextField(
-                onChanged: (value) => print(value),
+                onChanged: (value) => password = value,
                 decoration: const InputDecoration(
                   labelText: 'Mot de passe',
                 ),
@@ -359,12 +372,22 @@ class AddService extends StatelessWidget {
             ),
             const SizedBox(height: 50),
             ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddService(),
-                ),
-              ),
+              onPressed: () {
+                final Map<String, dynamic> content = {
+                  'service': service,
+                  'id_identifiers': idIdentifiers,
+                  'userInfo': {'identifier': identifier, 'password': password}
+                };
+                data.addData(content);
+                fileActions.writeOnFile(data.data);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddService(),
+                  ),
+                );
+              },
               child: const Text('Valider'),
             ),
           ],
