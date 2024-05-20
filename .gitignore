@@ -44,3 +44,4 @@ app.*.map.json
 
 # Data file
 data.txt
+data.json
