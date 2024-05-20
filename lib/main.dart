@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
+import 'password_manager.dart';
 
 void main() {
   runApp(const MainApp());
@@ -15,98 +13,207 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Gestionnaire de Mot de Passe',
-      home: HomePage(),
+      home: AppContainer(),
     );
   }
 }
 
 class MyAppState extends ChangeNotifier {
   bool _isAuthenticated = false;
+  bool _isFirstLaunch = true;
+  final PasswordManager _passwordManager = PasswordManager();
 
   bool get isAuthenticated => _isAuthenticated;
+  bool get isFirstLaunch => _isFirstLaunch;
 
-  void authenticate() {
+  MyAppState() {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    _isFirstLaunch = !await _passwordManager.masterPasswordExists();
+    notifyListeners();
+  }
+
+  Future<void> authenticate(String password) async {
+    _isAuthenticated = await _passwordManager.verifyMasterPassword(password);
+    notifyListeners();
+  }
+
+  Future<void> setMasterPassword(String password) async {
+    await _passwordManager.setMasterPassword(password);
+    _isFirstLaunch = false;
     _isAuthenticated = true;
     notifyListeners();
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class AppContainer extends StatefulWidget {
+  const AppContainer({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<AppContainer> createState() => _AppContainerState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _AppContainerState extends State<AppContainer> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: Consumer<MyAppState>(
-        builder: (context, appState, child) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Gestionnaire de Mot de Passe'),
-            ),
-            body: appState.isAuthenticated
+        builder: (context, appState, _) {
+          if (appState.isFirstLaunch) {
+            return const CreateMasterPasswordForm();
+          } else {
+            return appState.isAuthenticated
                 ? const PasswordsList()
-                : const MasterPasswordForm(),
-            floatingActionButton: FloatingActionButton(
-              elevation: 0,
-              backgroundColor: Colors.blueAccent,
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddService(),
-                ),
-              ),
-              tooltip: 'Ajouter un service',
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
-          );
+                : const MasterPasswordForm();
+          }
         },
       ),
     );
   }
 }
 
-class MasterPasswordForm extends StatelessWidget {
+class MasterPasswordForm extends StatefulWidget {
   const MasterPasswordForm({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _MasterPasswordFormState createState() => _MasterPasswordFormState();
+}
+
+class _MasterPasswordFormState extends State<MasterPasswordForm> {
+  final TextEditingController _controller = TextEditingController();
+  String _errorMessage = '';
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    return (Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Text(
-            'Entrez votre mot de passe principal',
-            style: TextStyle(
-                fontSize: 24, color: Color.fromARGB(255, 9, 102, 148)),
-          ),
-          const SizedBox(height: 20),
-          const SizedBox(
-            width: 400,
-            child: TextField(
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Entrez votre mot de passe principal',
               style: TextStyle(
-                fontSize: 16,
-              ),
-              obscureText: true,
+                  fontSize: 24, color: Color.fromARGB(255, 9, 102, 148)),
             ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              appState.authenticate();
-            },
-            child: const Text('Valider'),
-          ),
-        ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 400,
+              child: TextField(
+                controller: _controller,
+                style: const TextStyle(fontSize: 16),
+                obscureText: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _errorMessage,
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                if (_controller.text.isEmpty) {
+                  setState(() {
+                    _errorMessage = 'Le mot de passe ne peut pas être vide';
+                  });
+                } else {
+                  await appState.authenticate(_controller.text);
+                  if (!appState.isAuthenticated) {
+                    setState(() {
+                      _errorMessage = 'Mot de passe incorrect';
+                    });
+                  }
+                }
+              },
+              child: const Text('Valider'),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
+  }
+}
+
+class CreateMasterPasswordForm extends StatefulWidget {
+  const CreateMasterPasswordForm({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _CreateMasterPasswordFormState createState() =>
+      _CreateMasterPasswordFormState();
+}
+
+class _CreateMasterPasswordFormState extends State<CreateMasterPasswordForm> {
+  final TextEditingController _controller = TextEditingController();
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Créez votre mot de passe principal',
+              style: TextStyle(
+                  fontSize: 24, color: Color.fromARGB(255, 9, 102, 148)),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 400,
+              child: TextField(
+                controller: _controller,
+                style: const TextStyle(fontSize: 16),
+                obscureText: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _errorMessage,
+              style: const TextStyle(color: Colors.red),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                if (_controller.text.isEmpty) {
+                  setState(() {
+                    _errorMessage = 'Le mot de passe ne peut pas être vide';
+                  });
+                } else {
+                  await appState.setMasterPassword(_controller.text);
+                }
+              },
+              child: const Text('Créer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestionnaire de Mot de Passe'),
+      ),
+      body: const Center(
+        child: PasswordsList(),
+      ),
+    );
   }
 }
 
@@ -120,22 +227,39 @@ class PasswordsList extends StatefulWidget {
 class _PasswordsListState extends State<PasswordsList> {
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        children: [
-          SizedBox(height: 20),
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                CardServices(),
-                CardServices(),
-                CardServices(),
-              ],
-            ),
-          )
-        ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Services'),
+      ),
+      body: const Center(
+        child: Column(
+          children: [
+            SizedBox(height: 20),
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  CardServices(),
+                  CardServices(),
+                  CardServices(),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        elevation: 0,
+        backgroundColor: Colors.blueAccent,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AddService(),
+          ),
+        ),
+        tooltip: 'Ajouter un service',
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -209,6 +333,16 @@ class AddService extends StatelessWidget {
               child: TextField(
                 onChanged: (value) => print(value),
                 decoration: const InputDecoration(
+                  labelText: 'Nom du Service',
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 400,
+              child: TextField(
+                onChanged: (value) => print(value),
+                decoration: const InputDecoration(
                   labelText: 'Identifiant',
                 ),
               ),
@@ -223,7 +357,7 @@ class AddService extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 50),
             ElevatedButton(
               onPressed: () => Navigator.push(
                 context,
@@ -249,51 +383,13 @@ class ServiceDetails extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Détails du Service'),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'Service:',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Nom du Service',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 30),
-            Text(
-              'Identifiant:',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Identifiant de l\'utilisateur',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 30),
-            Text(
-              'Mot de passe:',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Mot de passe de l\'utilisateur',
-              style: TextStyle(fontSize: 18),
-            ),
-          ],
-        ),
+      body: Center(
+        child: Table(children: const [
+          TableRow(children: [
+            TableCell(child: Text('Nom du Service')),
+            TableCell(child: Text('Service')),
+          ]),
+        ]),
       ),
     );
   }
