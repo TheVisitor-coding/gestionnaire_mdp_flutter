@@ -227,25 +227,32 @@ class PasswordsList extends StatefulWidget {
 }
 
 class _PasswordsListState extends State<PasswordsList> {
+  static var data = Data();
+  dynamic dataList = data.data['data'];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Services'),
       ),
-      body: const Center(
+      body: Center(
         child: Column(
           children: [
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CardServices(),
-                  CardServices(),
-                  CardServices(),
-                ],
+                children: dataList.isNotEmpty
+                    ? dataList
+                        .map<Widget>((item) => CardServices(
+                              item['service'],
+                              item['userInfo']['identifier'],
+                              item['userInfo']['password'],
+                            ))
+                        .toList()
+                    : [],
               ),
             )
           ],
@@ -268,7 +275,12 @@ class _PasswordsListState extends State<PasswordsList> {
 }
 
 class CardServices extends StatelessWidget {
-  const CardServices({super.key});
+  final String service;
+  final String identifier;
+  final String password;
+
+  const CardServices(this.service, this.identifier, this.password, {super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -280,33 +292,34 @@ class CardServices extends StatelessWidget {
             builder: (context) => const ServiceDetails(),
           ),
         ),
-        child: const Card.outlined(
+        child: Card.outlined(
           child: Padding(
-            padding: EdgeInsets.only(left: 20, right: 100, top: 24, bottom: 24),
+            padding: const EdgeInsets.only(
+                left: 20, right: 100, top: 24, bottom: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Service',
-                  style: TextStyle(
+                  service,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
+                const SizedBox(height: 2),
+                const Text(
                   'Date de création: ',
                   style: TextStyle(fontSize: 10),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'Identifiant:',
-                  style: TextStyle(fontSize: 14),
+                  identifier,
+                  style: const TextStyle(fontSize: 14),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  'Mot de passe:',
-                  style: TextStyle(fontSize: 14),
+                  password,
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ),
@@ -379,7 +392,6 @@ class AddService extends StatelessWidget {
                   'userInfo': {'identifier': identifier, 'password': password}
                 };
                 data.addData(content);
-                fileActions.writeOnFile(data.data);
 
                 Navigator.push(
                   context,
