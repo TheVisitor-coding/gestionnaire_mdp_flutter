@@ -9,71 +9,49 @@ class Data {
   var fileActions = FileActions();
   dynamic data;
 
-  /// Fonction pour lire les données du fichier data.json
-  /// SI le fichier existe
-  /// [data] : données du fichier data.json
-  /// [return] : données du fichier data.json
-  // Data() : data = {"data": []} {
-  //   if (file.existsSync()) {
-  //     if (file.readAsStringSync() != "") {
-  //       data = readData();
-  //       print("Fichier non vide");
-  //     } else {
-  //       data = {"data": []};
-  //       data = readData();
-  //       print("Fichier vide");
-  //     }
-  //   } else {
-  //     data = {"data": []};
-  //     data = readData();
-  //     print("Fichier inexistant");
-  //   }
-  // }
-
+  /// Constructeur de la classe Data
   Data() : data = {"data": []};
 
+  /// Fonction pour initialiser le fichier data.json
+  /// [return] : lecture des données du fichier data.json si le fichier existe
   Future<void> initialize() async {
     if (file.existsSync()) {
       if (file.readAsStringSync() != "") {
         data = await readData();
-        print("data instancié" + data.toString());
-        print("Fichier non vide");
       } else {
         data = {"data": []};
-        print("Fichier vide");
       }
     } else {
       data = {"data": []};
-      print("Fichier inexistant");
     }
   }
 
+  /// Fonction pour lire les données du fichier data.json
+  /// [return] : données du fichier data.json
   Future readData() async {
     final _data = await file.readAsString();
-    print("Données cryptées : $_data");
     final decryptedData =
         await PasswordManager().decryptData(jsonDecode(_data));
-    print("Données décryptées : $decryptedData");
     data = jsonDecode(decryptedData);
     return data;
   }
 
   /// Fonction pour ajouter des données dans le fichier data.json
+  /// [content] : contenu à ajouter dans le fichier
   void addData(Map<String, dynamic> content) {
-    print("Ajout de données : $content");
-    print("Données actuelles : $data");
     data["data"]!.add(content);
     fileActions.writeOnFile(data);
-    print("Données ajoutées : $data");
   }
 
   /// Fonction pour supprimer des données dans le fichier data.json
+  /// [id] : identifiant de la donnée à supprimer
   void removeData(int id) {
     var localData = data['data'];
     localData!.removeWhere((element) => element['id_identifiers'] == id);
     fileActions.writeOnFile(localData);
   }
 
+  /// Fonction pour attribuer un identifiant unique à une donnée
   int getCurrentId() {
     if (data['data']!.isEmpty) {
       return 1;

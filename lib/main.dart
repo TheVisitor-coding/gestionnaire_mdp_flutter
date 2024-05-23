@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'password_manager.dart';
 import 'data.dart';
-import 'file_writing.dart';
 
 void main() {
   runApp(const MainApp());
@@ -252,7 +251,7 @@ class _PasswordsListState extends State<PasswordsList> {
           future: _dataFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.hasData) {
@@ -278,7 +277,7 @@ class _PasswordsListState extends State<PasswordsList> {
                 ],
               );
             } else {
-              return Text('No data available');
+              return const Text('Pas de Services enregistrés');
             }
           },
         ),
@@ -289,7 +288,7 @@ class _PasswordsListState extends State<PasswordsList> {
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const AddService(),
+            builder: (context) => AddService(dataFuture: _dataFuture),
           ),
         ),
         tooltip: 'Ajouter un service',
@@ -359,13 +358,12 @@ class CardServices extends StatelessWidget {
 // "id_identifiers": 1,
 // "userInfo": {"identifier": "test@free.fr", "password": "Test1998"}
 class AddService extends StatelessWidget {
-  static var data = Data();
-  static var fileActions = FileActions();
+  final Future<Data> dataFuture;
 
-  const AddService({super.key});
+  const AddService({required this.dataFuture, super.key});
 
   static String service = '';
-  static int idIdentifiers = data.getCurrentId();
+  static int idIdentifiers = 1;
   static String identifier = '';
   static String password = '';
 
@@ -375,61 +373,74 @@ class AddService extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Service'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 400,
-              child: TextField(
-                onChanged: (value) => service = value,
-                decoration: const InputDecoration(
-                  labelText: 'Nom du Service',
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 400,
-              child: TextField(
-                onChanged: (value) => identifier = value,
-                decoration: const InputDecoration(
-                  labelText: 'Identifiant',
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 400,
-              child: TextField(
-                onChanged: (value) => password = value,
-                decoration: const InputDecoration(
-                  labelText: 'Mot de passe',
-                ),
-                obscureText: true,
-              ),
-            ),
-            const SizedBox(height: 50),
-            ElevatedButton(
-              onPressed: () {
-                final Map<String, dynamic> content = {
-                  'service': service,
-                  'id_identifiers': idIdentifiers,
-                  'userInfo': {'identifier': identifier, 'password': password}
-                };
-                data.addData(content);
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddService(),
+      body: FutureBuilder<Data>(
+        future: dataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else if (snapshot.hasData) {
+            final data = snapshot.data!;
+            idIdentifiers = data.getCurrentId();
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 400,
+                    child: TextField(
+                      onChanged: (value) => service = value,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du Service',
+                      ),
+                    ),
                   ),
-                );
-              },
-              child: const Text('Valider'),
-            ),
-          ],
-        ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 400,
+                    child: TextField(
+                      onChanged: (value) => identifier = value,
+                      decoration: const InputDecoration(
+                        labelText: 'Identifiant',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 400,
+                    child: TextField(
+                      onChanged: (value) => password = value,
+                      decoration: const InputDecoration(
+                        labelText: 'Mot de passe',
+                      ),
+                      obscureText: true,
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  ElevatedButton(
+                    onPressed: () {
+                      final Map<String, dynamic> content = {
+                        'service': service,
+                        'id_identifiers': idIdentifiers,
+                        'userInfo': {
+                          'identifier': identifier,
+                          'password': password
+                        }
+                      };
+                      data.addData(content);
+
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Valider'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return const Text('Une erreur est survenue');
+          }
+        },
       ),
     );
   }

@@ -12,7 +12,6 @@ class FileActions {
     if (!file.existsSync()) {
       file.createSync();
     }
-    print(content);
     final jsonData = jsonEncode(content);
     final cryptedData = await PasswordManager().encryptData(jsonData);
     await file.writeAsString(jsonEncode(cryptedData).toString());
