@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'password_manager.dart';
 import 'data.dart';
@@ -118,6 +119,9 @@ class _MasterPasswordFormState extends State<MasterPasswordForm> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+              ),
               onPressed: () async {
                 if (_controller.text.isEmpty) {
                   setState(() {
@@ -132,7 +136,8 @@ class _MasterPasswordFormState extends State<MasterPasswordForm> {
                   }
                 }
               },
-              child: const Text('Valider'),
+              child:
+                  const Text('Valider', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -184,6 +189,9 @@ class _CreateMasterPasswordFormState extends State<CreateMasterPasswordForm> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+              ),
               onPressed: () async {
                 if (_controller.text.isEmpty) {
                   setState(() {
@@ -193,7 +201,7 @@ class _CreateMasterPasswordFormState extends State<CreateMasterPasswordForm> {
                   await appState.setMasterPassword(_controller.text);
                 }
               },
-              child: const Text('Créer'),
+              child: const Text('Créer', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -327,23 +335,52 @@ class CardServices extends StatelessWidget {
                   service,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 20,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 10),
                 const Text(
-                  'Date de création: ',
-                  style: TextStyle(fontSize: 10),
+                  'Identifiant :',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 ),
-                const SizedBox(height: 16),
                 Text(
                   identifier,
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(
+                    fontSize: 16,
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  password,
-                  style: const TextStyle(fontSize: 14),
+                const SizedBox(height: 10),
+                const Text(
+                  'Mot de passe :',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      '*' * password.length,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, color: Colors.blue),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: password));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Colors.blue,
+                            content: Text('Mot de passe copié'),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -419,6 +456,9 @@ class AddService extends StatelessWidget {
                   ),
                   const SizedBox(height: 50),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                    ),
                     onPressed: () {
                       final Map<String, dynamic> content = {
                         'service': service,
@@ -432,7 +472,8 @@ class AddService extends StatelessWidget {
 
                       Navigator.pop(context);
                     },
-                    child: const Text('Valider'),
+                    child: const Text('Valider',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
