@@ -227,8 +227,19 @@ class PasswordsList extends StatefulWidget {
 }
 
 class _PasswordsListState extends State<PasswordsList> {
-  static var data = Data();
-  dynamic dataList = data.data['data'];
+  late Future<Data> _dataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataFuture = _initializeData();
+  }
+
+  Future<Data> _initializeData() async {
+    var data = Data();
+    await data.initialize();
+    return data;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,25 +248,39 @@ class _PasswordsListState extends State<PasswordsList> {
         title: const Text('Services'),
       ),
       body: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: dataList.isNotEmpty
-                    ? dataList
-                        .map<Widget>((item) => CardServices(
-                              item['service'],
-                              item['userInfo']['identifier'],
-                              item['userInfo']['password'],
-                            ))
-                        .toList()
-                    : [],
-              ),
-            )
-          ],
+        child: FutureBuilder<Data>(
+          future: _dataFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else if (snapshot.hasData) {
+              final dataList = snapshot.data!.data['data'];
+              return Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: dataList.isNotEmpty
+                          ? dataList.map<Widget>((item) {
+                              return CardServices(
+                                item['service'],
+                                item['userInfo']['identifier'],
+                                item['userInfo']['password'],
+                              );
+                            }).toList()
+                          : [],
+                    ),
+                  )
+                ],
+              );
+            } else {
+              return Text('No data available');
+            }
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -381,6 +406,7 @@ class AddService extends StatelessWidget {
                 decoration: const InputDecoration(
                   labelText: 'Mot de passe',
                 ),
+                obscureText: true,
               ),
             ),
             const SizedBox(height: 50),
