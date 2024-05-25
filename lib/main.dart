@@ -227,7 +227,9 @@ class HomePage extends StatelessWidget {
 }
 
 class PasswordsList extends StatefulWidget {
-  const PasswordsList({super.key});
+  final Data? data;
+
+  const PasswordsList({this.data, super.key});
 
   @override
   State<PasswordsList> createState() => _PasswordsListState();
@@ -239,13 +241,13 @@ class _PasswordsListState extends State<PasswordsList> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = _initializeData();
+    _dataFuture =
+        widget.data != null ? Future.value(widget.data) : _initializeData();
   }
 
   Future<Data> _initializeData() async {
     var data = Data();
     await data.initialize();
-    print(data.data);
     return data;
   }
 
@@ -294,12 +296,21 @@ class _PasswordsListState extends State<PasswordsList> {
       floatingActionButton: FloatingActionButton(
         elevation: 0,
         backgroundColor: Colors.blueAccent,
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddService(dataFuture: _dataFuture),
-          ),
-        ),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AddService(dataFuture: Future.value(_dataFuture)),
+            ),
+          );
+
+          if (result == true) {
+            setState(() {
+              _dataFuture = _initializeData();
+            });
+          }
+        },
         tooltip: 'Ajouter un service',
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -472,10 +483,11 @@ class AddService extends StatelessWidget {
                       data.addData(content);
 
                       Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PasswordsList(),
-                          ));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PasswordsList(data: data),
+                        ),
+                      );
                     },
                     child: const Text('Valider',
                         style: TextStyle(color: Colors.white)),
