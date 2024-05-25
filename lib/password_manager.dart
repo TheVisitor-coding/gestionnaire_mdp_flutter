@@ -60,7 +60,7 @@ class PasswordManager {
 
     _masterKey = newSecretKey;
 
-    return _compareLists(storedKey, newKey);
+    return compareLists(storedKey, newKey);
   }
 
   /// Fonction pour vérifier si le mot de passe maître existe
@@ -75,7 +75,7 @@ class PasswordManager {
   /// [list1] : première liste d'entiers
   /// [list2] : deuxième liste d'entiers
   /// [return] : comparaison des deux listes
-  bool _compareLists(List<int> list1, List<int> list2) {
+  static bool compareLists(List<int> list1, List<int> list2) {
     if (list1.length != list2.length) return false;
     for (int i = 0; i < list1.length; i++) {
       if (list1[i] != list2[i]) return false;
