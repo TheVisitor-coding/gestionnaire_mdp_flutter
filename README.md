@@ -26,7 +26,7 @@ Projet d'enregistement de ses mots de passe de manière sécurisée.
 
 ## Cahier des charges
 
-Pour visualiser le cahier des charges c'est par [Ici](https://eduservices-my.sharepoint.com/:w:/r/personal/matteo_rossi_my-digital-school_org/_layouts/15/Doc.aspx?sourcedoc=%7BA1BB6C87-BFF4-4BB8-B216-090F8358C666%7D&file=Gestionnaire%20MDP%20CDC.docx&fromShare=true&action=default&mobileredirect=true).
+Pour visualiser le cahier des charges c'est [par ici](https://eduservices-my.sharepoint.com/:w:/r/personal/matteo_rossi_my-digital-school_org/_layouts/15/Doc.aspx?sourcedoc=%7BA1BB6C87-BFF4-4BB8-B216-090F8358C666%7D&file=Gestionnaire%20MDP%20CDC.docx&fromShare=true&action=default&mobileredirect=true).
 
 ## Ressources
 
