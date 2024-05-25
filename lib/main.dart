@@ -245,6 +245,7 @@ class _PasswordsListState extends State<PasswordsList> {
   Future<Data> _initializeData() async {
     var data = Data();
     await data.initialize();
+    print(data.data);
     return data;
   }
 
@@ -470,7 +471,11 @@ class AddService extends StatelessWidget {
                       };
                       data.addData(content);
 
-                      Navigator.pop(context);
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PasswordsList(),
+                          ));
                     },
                     child: const Text('Valider',
                         style: TextStyle(color: Colors.white)),
